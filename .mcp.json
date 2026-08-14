@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "codex-bilingual-overlay": {
+      "title": "中英双语增强器",
+      "description": "在不修改 Codex 的前提下显示本地简体中文翻译。",
+      "cwd": ".",
+      "command": "node",
+      "args": [
+        "./src/server.mjs"
+      ]
+    }
+  }
+}

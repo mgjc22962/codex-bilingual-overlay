@@ -1,0 +1,26 @@
+{
+  "name": "codex-bilingual-overlay",
+  "version": "0.1.0+codex.github.1",
+  "description": "Preserve English in Codex and show local Simplified Chinese translations in a safe click-through overlay.",
+  "author": {
+    "name": "mgjc22962"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "\u4e2d\u82f1\u53cc\u8bed\u589e\u5f3a\u5668",
+    "shortDescription": "\u4fdd\u7559\u82f1\u6587\u5e76\u663e\u793a\u7b80\u4f53\u4e2d\u6587\u7ffb\u8bd1",
+    "longDescription": "\u901a\u8fc7\u72ec\u7acb\u3001\u70b9\u51fb\u7a7f\u900f\u7684 Windows \u8986\u76d6\u5c42\u8bfb\u53d6 Codex \u53ef\u89c1\u82f1\u6587\uff0c\u5728\u65c1\u8fb9\u6216\u4e0b\u65b9\u663e\u793a\u5168\u89d2\u62ec\u53f7\u5305\u88f9\u7684\u7b80\u4f53\u4e2d\u6587\uff1b\u4e0d\u4fee\u6539 Codex\u3001\u63d2\u4ef6\u6216\u8c03\u7528\u6570\u636e\u3002",
+    "developerName": "mgjc22962",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "defaultPrompt": [
+      "\u6253\u5f00\u4e2d\u82f1\u53cc\u8bed\u589e\u5f3a\u5668\u63a7\u5236\u5361",
+      "\u542f\u7528\u60ac\u505c\u7ffb\u8bd1",
+      "\u67e5\u770b\u4e2d\u82f1\u53cc\u8bed\u589e\u5f3a\u5668\u72b6\u6001"
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}
