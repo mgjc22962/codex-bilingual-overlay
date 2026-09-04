@@ -21,7 +21,12 @@ export function createBilingualRuntime(options = {}) {
   };
 
   const protocol = createProtocol({
-    onModeChange: (mode) => controller.setMode(mode),
+    onModeChange: async (mode) => {
+      if (mode !== "off" && typeof translation.warmUp === "function") {
+        await translation.warmUp();
+      }
+      return controller.setMode(mode);
+    },
     getRuntimeStatus,
     modeStore,
   });

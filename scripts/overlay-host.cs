@@ -292,6 +292,9 @@ namespace CodexBilingualOverlay
         private static int hoverSkillTick;
         private static Candidate hoverSkillCandidate;
         private static System.Windows.Forms.Timer captureTimer;
+        private const int HoverPollIntervalMs = 50;
+        private const int FullSkillRefreshPolls = 5;
+        private const int PreloadRefreshPolls = 6;
         private static readonly string[] KnownCardTitles = new string[]
         {
             "HyperFrames by HeyGen", "Business & Operations", "Manage Google Calendar", "Outlook Calendar",
@@ -323,6 +326,14 @@ namespace CodexBilingualOverlay
                     "\"toolWindow\":" + Bool((style & OverlayForm.WsExToolWindow) != 0) + "," +
                     "\"hitTest\":" + hit.ToString() + "}");
             }
+        }
+
+        public static void TimingProbe()
+        {
+            Console.Out.WriteLine(
+                "{\"regularHoverMaxDelayMs\":" + HoverPollIntervalMs.ToString() +
+                ",\"fullSkillMaxDelayMs\":" + (HoverPollIntervalMs * FullSkillRefreshPolls).ToString() +
+                ",\"pagePreloadMaxDelayMs\":" + (HoverPollIntervalMs * PreloadRefreshPolls).ToString() + "}");
         }
 
         public static void PanelProbe()
@@ -442,11 +453,11 @@ namespace CodexBilingualOverlay
             form = new OverlayForm();
             manager = new OverlayManager(form);
             captureTimer = new System.Windows.Forms.Timer();
-            captureTimer.Interval = 250;
+            captureTimer.Interval = HoverPollIntervalMs;
             captureTimer.Tick += delegate
             {
                 if (mode == "hover") CaptureHover();
-                else if (mode == "preload" && (++preloadTick % 6 == 1)) CapturePreload();
+                else if (mode == "preload" && (++preloadTick % PreloadRefreshPolls == 1)) CapturePreload();
             };
             captureTimer.Start();
 
@@ -508,7 +519,7 @@ namespace CodexBilingualOverlay
                     return;
                 }
                 AutomationElement element = AutomationElement.FromPoint(new System.Windows.Point(point.X, point.Y));
-                if (++hoverSkillTick % 6 == 1)
+                if (++hoverSkillTick % FullSkillRefreshPolls == 1)
                 {
                     IntPtr window = NativeMethods.GetAncestor(NativeMethods.WindowFromPoint(point), 2);
                     hoverSkillCandidate = FindFullSkillCandidate(window);

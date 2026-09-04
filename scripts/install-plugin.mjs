@@ -73,9 +73,11 @@ updatePersonalMarketplace(marketplaceFile);
 
 if (!flags.has("--skip-dependencies")) {
   if (process.platform === "win32") {
-    run(process.env.ComSpec ?? "cmd.exe", ["/d", "/s", "/c", "npm.cmd", "ci"], pluginHome);
+    run(process.env.ComSpec ?? "cmd.exe", [
+      "/d", "/s", "/c", "npm.cmd", "ci", "--prefer-offline", "--no-audit", "--no-fund",
+    ], pluginHome);
   } else {
-    run("npm", ["ci"], pluginHome);
+    run("npm", ["ci", "--prefer-offline", "--no-audit", "--no-fund"], pluginHome);
   }
 }
 if (!flags.has("--skip-runtime")) {

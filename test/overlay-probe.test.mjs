@@ -66,3 +66,13 @@ test("splits one marketplace card into separate title and description hover targ
   assert.ok(probe.titleWidth > 80);
   assert.ok(probe.descriptionWidth > 160);
 });
+
+test("keeps hover detection below a perceptible delay", async () => {
+  const module = await import("../src/overlay-process.mjs");
+  assert.equal(typeof module.runTimingProbe, "function");
+  const probe = await module.runTimingProbe();
+
+  assert.ok(probe.regularHoverMaxDelayMs <= 75);
+  assert.ok(probe.fullSkillMaxDelayMs <= 300);
+  assert.ok(probe.pagePreloadMaxDelayMs <= 350);
+});

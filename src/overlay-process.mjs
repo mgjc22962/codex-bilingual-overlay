@@ -43,6 +43,10 @@ export function runPanelProbe() {
   return runProbe("PanelProbe");
 }
 
+export function runTimingProbe() {
+  return runProbe("TimingProbe");
+}
+
 export function runSkillAggregationProbe() {
   return runProbe("SkillAggregationProbe");
 }

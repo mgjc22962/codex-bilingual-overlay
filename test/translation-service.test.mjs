@@ -71,3 +71,28 @@ test("rejects pending work when the worker fails without crashing the host", asy
   assert.equal(service.getStatus().modelState, "failed");
   assert.match(service.getStatus().lastError, /exited with code 9/);
 });
+
+test("warms the offline model before the first hover translation", async () => {
+  const child = fakeWorker();
+  const service = new TranslationService({ spawnWorker: () => child });
+
+  const warming = service.warmUp();
+  assert.equal(service.getStatus().modelState, "loading");
+  child.stdout.write(`${JSON.stringify({ type: "ready" })}\n`);
+
+  await warming;
+  assert.equal(service.getStatus().modelState, "ready");
+  service.close();
+});
+
+test("keeps the worker startup error when the process exits", async () => {
+  const child = fakeWorker();
+  const service = new TranslationService({ spawnWorker: () => child });
+
+  const warming = service.warmUp();
+  child.stderr.write("No Python at C:\\Users\\old-profile\\python.exe\n");
+  child.emit("exit", 103);
+
+  await assert.rejects(warming, /No Python at .*exited with code 103/u);
+  assert.match(service.getStatus().lastError, /No Python at .*exited with code 103/u);
+});

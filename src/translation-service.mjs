@@ -37,6 +37,8 @@ export class TranslationService {
     this.nextId = 1;
     this.pending = new Map();
     this.cache = new Map();
+    this.readyWaiters = [];
+    this.workerStartupError = null;
     this.modelState = "installed";
     this.lastError = null;
   }
@@ -81,11 +83,22 @@ export class TranslationService {
     return result;
   }
 
+  async warmUp() {
+    if (this.modelState === "ready" && this.worker) return;
+    this.#ensureWorker();
+    if (this.modelState === "ready") return;
+    await new Promise((resolvePromise, rejectPromise) => {
+      this.readyWaiters.push({ resolve: resolvePromise, reject: rejectPromise });
+    });
+  }
+
   close() {
     const worker = this.worker;
     this.worker = null;
     if (worker) worker.kill();
-    this.#rejectAll(new Error("Offline translation worker closed"));
+    const error = new Error("Offline translation worker closed");
+    this.#rejectAll(error);
+    this.#rejectReady(error);
     this.modelState = "stopped";
   }
 
@@ -95,6 +108,7 @@ export class TranslationService {
     this.worker = worker;
     this.modelState = "loading";
     this.lastError = null;
+    this.workerStartupError = null;
 
     if (worker.stdout) {
       createInterface({ input: worker.stdout }).on("line", (line) => this.#handleLine(line));
@@ -102,12 +116,19 @@ export class TranslationService {
     worker.stderr?.setEncoding?.("utf8");
     worker.stderr?.on?.("data", (chunk) => {
       const message = String(chunk).trim();
-      if (message) this.lastError = message;
+      if (message) {
+        this.workerStartupError = message;
+        this.lastError = message;
+      }
     });
     worker.on?.("error", (error) => this.#failWorker(error));
     worker.on?.("exit", (code) => {
       if (this.worker !== worker) return;
-      this.#failWorker(new Error(`Offline translation worker exited with code ${code}`));
+      const detail = this.workerStartupError;
+      const message = detail
+        ? `${detail} (offline translation worker exited with code ${code})`
+        : `Offline translation worker exited with code ${code}`;
+      this.#failWorker(new Error(message));
     });
     return worker;
   }
@@ -122,6 +143,8 @@ export class TranslationService {
     if (message.type === "ready") {
       this.modelState = "ready";
       this.lastError = null;
+      this.workerStartupError = null;
+      this.#resolveReady();
       return;
     }
     if (!Number.isInteger(message.id)) return;
@@ -159,6 +182,17 @@ export class TranslationService {
     this.modelState = "failed";
     this.lastError = error.message;
     this.#rejectAll(error);
+    this.#rejectReady(error);
+  }
+
+  #resolveReady() {
+    const waiters = this.readyWaiters.splice(0);
+    for (const waiter of waiters) waiter.resolve();
+  }
+
+  #rejectReady(error) {
+    const waiters = this.readyWaiters.splice(0);
+    for (const waiter of waiters) waiter.reject(error);
   }
 
   #cache(source, translated) {

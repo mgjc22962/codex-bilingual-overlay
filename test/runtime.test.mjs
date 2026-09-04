@@ -72,3 +72,25 @@ test("persists the selected mode across independent runtime processes", async ()
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("prewarms translation before enabling an active overlay mode", async () => {
+  const events = [];
+  const controller = {
+    async setMode(mode) {
+      events.push(`mode:${mode}`);
+      return this.getStatus();
+    },
+    getStatus: () => ({ mode: "hover", overlayState: "running", lastError: null }),
+  };
+  const translation = {
+    warmUp: async () => { events.push("warm"); },
+    translate: async () => "翻译",
+    getStatus: () => ({ modelState: "ready", cacheEntries: 0, lastError: null }),
+    close() {},
+  };
+  const runtime = createBilingualRuntime({ controller, translation });
+
+  await runtime.protocol.callTool("set_bilingual_mode", { mode: "hover" });
+
+  assert.deepEqual(events, ["warm", "mode:hover"]);
+});
