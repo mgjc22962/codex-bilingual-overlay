@@ -94,3 +94,38 @@ test("prewarms translation before enabling an active overlay mode", async () => 
 
   assert.deepEqual(events, ["warm", "mode:hover"]);
 });
+
+test("keeps the overlay usable when optional model warmup fails", async () => {
+  const modes = [];
+  let modelState = "installed";
+  let modelError = null;
+  const controller = {
+    async setMode(mode) {
+      modes.push(mode);
+      return this.getStatus();
+    },
+    getStatus: () => ({
+      mode: modes.at(-1) ?? "off",
+      overlayState: modes.at(-1) === "hover" ? "running" : "stopped",
+      lastError: null,
+    }),
+  };
+  const translation = {
+    async warmUp() {
+      modelState = "failed";
+      modelError = "offline runtime unavailable";
+      throw new Error(modelError);
+    },
+    translate: async () => "",
+    getStatus: () => ({ modelState, cacheEntries: 0, lastError: modelError }),
+    close() {},
+  };
+  const runtime = createBilingualRuntime({ controller, translation });
+
+  const result = await runtime.protocol.callTool("set_bilingual_mode", { mode: "hover" });
+
+  assert.deepEqual(modes, ["hover"]);
+  assert.equal(result.structuredContent.overlayState, "running");
+  assert.equal(result.structuredContent.modelState, "failed");
+  assert.equal(result.structuredContent.lastError, "offline runtime unavailable");
+});

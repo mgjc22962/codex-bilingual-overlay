@@ -23,7 +23,11 @@ export function createBilingualRuntime(options = {}) {
   const protocol = createProtocol({
     onModeChange: async (mode) => {
       if (mode !== "off" && typeof translation.warmUp === "function") {
-        await translation.warmUp();
+        try {
+          await translation.warmUp();
+        } catch {
+          // Model failures remain visible in runtime status without disabling the overlay.
+        }
       }
       return controller.setMode(mode);
     },
