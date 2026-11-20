@@ -1,35 +1,40 @@
+import { readFile } from "node:fs/promises";
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
-  getUiCapability,
   registerAppResource,
   registerAppTool,
   RESOURCE_MIME_TYPE,
 } from "@modelcontextprotocol/ext-apps/server";
 import { z } from "zod";
 
-import { CONTROL_CARD_HTML } from "./control-card.mjs";
 import { CONTROL_RESOURCE_URI } from "./protocol.mjs";
 
-export function createMcpServer(protocol, { controlWindow } = {}) {
+const controlCardFile = new URL("../dist/control-card.html", import.meta.url);
+const legacyCardUri = "ui://codex-bilingual-overlay/controls-v1.html";
+
+export function createMcpServer(protocol) {
   const server = new McpServer({
     name: "codex-bilingual-overlay",
-    version: "0.1.1",
+    version: "0.1.2",
   });
 
-  registerAppResource(
-    server,
-    "中英双语增强器控制卡",
-    CONTROL_RESOURCE_URI,
-    { description: "切换本地双语覆盖层模式。" },
-    async () => ({
-      contents: [{
-        uri: CONTROL_RESOURCE_URI,
-        mimeType: RESOURCE_MIME_TYPE,
-        text: CONTROL_CARD_HTML,
-        _meta: { ui: { prefersBorder: true } },
-      }],
-    }),
-  );
+  for (const uri of [CONTROL_RESOURCE_URI, legacyCardUri]) {
+    registerAppResource(
+      server,
+      uri === legacyCardUri ? "中英双语增强器控制卡（历史对话）" : "中英双语增强器控制卡",
+      uri,
+      { description: "切换本地双语覆盖层模式。" },
+      async () => ({
+        contents: [{
+          uri,
+          mimeType: RESOURCE_MIME_TYPE,
+          text: await readFile(controlCardFile, "utf8"),
+          _meta: { ui: { prefersBorder: true } },
+        }],
+      }),
+    );
+  }
 
   registerAppTool(
     server,
@@ -38,31 +43,9 @@ export function createMcpServer(protocol, { controlWindow } = {}) {
       title: "显示中英双语增强器",
       description: "显示中英双语增强器控制卡。",
       inputSchema: {},
-      _meta: { ui: { resourceUri: CONTROL_RESOURCE_URI } },
+      _meta: { ui: { resourceUri: CONTROL_RESOURCE_URI, preferredModelDisplayMode: "inline" } },
     },
-    async () => {
-      const result = await protocol.callTool("show_bilingual_controls", {});
-      const ui = getUiCapability(server.server.getClientCapabilities());
-      if (!controlWindow || ui?.mimeTypes?.includes(RESOURCE_MIME_TYPE)) return result;
-
-      const { structuredContent } = result;
-      try {
-        await controlWindow.show(structuredContent.mode);
-        return {
-          structuredContent,
-          content: [{ type: "text", text: `控制卡已在 Windows 桌面打开。 ${result.content[0].text}` }],
-        };
-      } catch (error) {
-        return {
-          isError: true,
-          structuredContent,
-          content: [{
-            type: "text",
-            text: `无法打开 Windows 控制卡：${error.message}。仍可直接用翻译模式指令切换。`,
-          }],
-        };
-      }
-    },
+    async () => protocol.callTool("show_bilingual_controls", {}),
   );
 
   server.registerTool(
@@ -72,11 +55,7 @@ export function createMcpServer(protocol, { controlWindow } = {}) {
       description: "切换关闭、悬停翻译或页面预翻译模式。",
       inputSchema: { mode: z.enum(["off", "hover", "preload"]) },
     },
-    async ({ mode }) => {
-      const result = await protocol.callTool("set_bilingual_mode", { mode });
-      controlWindow?.update(result.structuredContent.mode);
-      return result;
-    },
+    async ({ mode }) => protocol.callTool("set_bilingual_mode", { mode }),
   );
 
   server.registerTool(

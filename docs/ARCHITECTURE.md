@@ -6,7 +6,7 @@ The plugin has three isolated processes:
 2. Translation worker: runs the local CTranslate2 model.
 3. Windows overlay host: reads visible text through UI Automation and draws click-through labels or panels.
 
-When the MCP client lacks embedded UI support, the server opens a separate Windows control window. Its buttons call the same mode handler as the MCP tools through a private pipe.
+The control card runs in the host's MCP Apps iframe. It uses the Apps SDK to initialize the connection and calls the same mode and status tools as the conversation. Installation bundles the card and SDK into local HTML.
 
 The overlay never modifies the Codex DOM or executable. It uses `WS_EX_TRANSPARENT`, `WS_EX_NOACTIVATE`, transparent hit testing, and no-activate positioning. A failure in translation or rendering closes or hides only the overlay; it does not change plugin invocation payloads.
 

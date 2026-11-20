@@ -1,6 +1,6 @@
 const MODES = new Set(["off", "hover", "preload"]);
 const MODE_LABELS = { off: "关闭", hover: "悬停翻译", preload: "页面预翻译" };
-const CONTROL_RESOURCE_URI = "ui://codex-bilingual-overlay/controls-v1.html";
+const CONTROL_RESOURCE_URI = "ui://codex-bilingual-overlay/controls-v2.html";
 
 function toolResult(status, message) {
   return {
@@ -103,4 +103,4 @@ export function createProtocol(options = {}) {
   return { callTool, getStatus, listTools };
 }
 
-export { CONTROL_RESOURCE_URI };
+export { CONTROL_RESOURCE_URI, MODE_LABELS };

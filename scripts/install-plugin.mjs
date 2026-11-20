@@ -29,7 +29,7 @@ function copyCleanPlugin(source, target) {
   if (resolve(source).toLowerCase() === resolve(target).toLowerCase()) return;
   assertSafePluginTarget(target);
   mkdirSync(target, { recursive: true });
-  const excluded = new Set([".git", "node_modules", "coverage", ".env"]);
+  const excluded = new Set([".git", "node_modules", "dist", "coverage", ".env"]);
   cpSync(source, target, {
     recursive: true,
     force: true,

@@ -1,6 +1,6 @@
 {
   "name": "codex-bilingual-overlay",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A safe, offline English-to-Chinese overlay for Codex on Windows.",
   "private": true,
   "license": "MIT",
@@ -13,11 +13,15 @@
   "scripts": {
     "setup": "node scripts/install-plugin.mjs",
     "test": "node --test",
-    "start": "node src/server.mjs"
+    "start": "node src/server.mjs",
+    "postinstall": "node scripts/build-control-card.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "1.7.5",
     "@modelcontextprotocol/sdk": "1.30.0",
     "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }

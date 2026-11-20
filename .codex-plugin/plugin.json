@@ -1,6 +1,6 @@
 {
   "name": "codex-bilingual-overlay",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Preserve English in Codex and show local Simplified Chinese translations in a safe click-through overlay.",
   "author": {
     "name": "mgjc22962"

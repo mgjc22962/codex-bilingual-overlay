@@ -30,7 +30,10 @@ try {
   const names = listed.tools.map((tool) => tool.name);
   const controls = await client.callTool({ name: "show_bilingual_controls", arguments: {} });
   if (controls.isError) throw new Error(controls.content[0]?.text);
-  const resource = await client.readResource({ uri: "ui://codex-bilingual-overlay/controls-v1.html" });
+  const uri = listed.tools.find((tool) => tool.name === "show_bilingual_controls")?._meta?.ui?.resourceUri;
+  if (!uri || controls._meta?.ui?.resourceUri !== uri) throw new Error("Invalid control card resource URI");
+  const resource = await client.readResource({ uri });
+  if (!resource.contents[0]?.text?.includes("ui/initialize")) throw new Error("MCP Apps handshake is missing");
   const enabled = await client.callTool({
     name: "set_bilingual_mode",
     arguments: { mode: "hover" },

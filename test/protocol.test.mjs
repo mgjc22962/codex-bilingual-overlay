@@ -22,7 +22,7 @@ test("defaults to hover mode and returns a control-card resource", async () => {
   const result = await protocol.callTool("show_bilingual_controls", {});
 
   assert.equal(result.structuredContent.mode, "hover");
-  assert.equal(result._meta.ui.resourceUri, "ui://codex-bilingual-overlay/controls-v1.html");
+  assert.equal(result._meta.ui.resourceUri, "ui://codex-bilingual-overlay/controls-v2.html");
   assert.match(result.content[0].text, /悬停翻译/);
 });
 

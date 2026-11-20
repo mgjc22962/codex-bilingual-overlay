@@ -74,6 +74,7 @@ test("installer can run npm ci in an isolated Windows plugin target", { timeout:
 
     assert.equal(result.status, 0, result.stderr);
     assert.equal(existsSync(join(pluginHome, "node_modules", "zod")), true);
+    assert.match(readFileSync(join(pluginHome, "dist", "control-card.html"), "utf8"), /ui\/initialize/);
   } finally {
     rmSync(temp, { recursive: true, force: true });
   }
