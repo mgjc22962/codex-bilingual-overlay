@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
+  getUiCapability,
   registerAppResource,
   registerAppTool,
   RESOURCE_MIME_TYPE,
@@ -9,10 +10,10 @@ import { z } from "zod";
 import { CONTROL_CARD_HTML } from "./control-card.mjs";
 import { CONTROL_RESOURCE_URI } from "./protocol.mjs";
 
-export function createMcpServer(protocol) {
+export function createMcpServer(protocol, { controlWindow } = {}) {
   const server = new McpServer({
     name: "codex-bilingual-overlay",
-    version: "0.1.0",
+    version: "0.1.1",
   });
 
   registerAppResource(
@@ -39,7 +40,29 @@ export function createMcpServer(protocol) {
       inputSchema: {},
       _meta: { ui: { resourceUri: CONTROL_RESOURCE_URI } },
     },
-    async () => protocol.callTool("show_bilingual_controls", {}),
+    async () => {
+      const result = await protocol.callTool("show_bilingual_controls", {});
+      const ui = getUiCapability(server.server.getClientCapabilities());
+      if (!controlWindow || ui?.mimeTypes?.includes(RESOURCE_MIME_TYPE)) return result;
+
+      const { structuredContent } = result;
+      try {
+        await controlWindow.show(structuredContent.mode);
+        return {
+          structuredContent,
+          content: [{ type: "text", text: `控制卡已在 Windows 桌面打开。 ${result.content[0].text}` }],
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          structuredContent,
+          content: [{
+            type: "text",
+            text: `无法打开 Windows 控制卡：${error.message}。仍可直接用翻译模式指令切换。`,
+          }],
+        };
+      }
+    },
   );
 
   server.registerTool(
@@ -49,7 +72,11 @@ export function createMcpServer(protocol) {
       description: "切换关闭、悬停翻译或页面预翻译模式。",
       inputSchema: { mode: z.enum(["off", "hover", "preload"]) },
     },
-    async ({ mode }) => protocol.callTool("set_bilingual_mode", { mode }),
+    async ({ mode }) => {
+      const result = await protocol.callTool("set_bilingual_mode", { mode });
+      controlWindow?.update(result.structuredContent.mode);
+      return result;
+    },
   );
 
   server.registerTool(

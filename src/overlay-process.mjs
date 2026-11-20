@@ -2,17 +2,18 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const sourcePath = fileURLToPath(new URL("../scripts/overlay-host.cs", import.meta.url));
+const controlWindowSourcePath = fileURLToPath(new URL("../scripts/control-window.cs", import.meta.url));
 const compileCommand = [
   "$ErrorActionPreference='Stop'",
   "Add-Type -Path $env:CODEX_BILINGUAL_OVERLAY_SOURCE -ReferencedAssemblies @('System.Windows.Forms','System.Drawing','WindowsBase','UIAutomationClient','UIAutomationTypes')",
 ].join("; ");
 
-function spawnHost(entryPoint) {
+function spawnHost(entryPoint, source = sourcePath) {
   return spawn(
     "powershell.exe",
-    ["-NoProfile", "-STA", "-Command", `${compileCommand}; [CodexBilingualOverlay.OverlayProgram]::${entryPoint}()`],
+    ["-NoProfile", "-STA", "-Command", `${compileCommand}; ${entryPoint}()`],
     {
-      env: { ...process.env, CODEX_BILINGUAL_OVERLAY_SOURCE: sourcePath },
+      env: { ...process.env, CODEX_BILINGUAL_OVERLAY_SOURCE: source },
       stdio: ["pipe", "pipe", "pipe"],
       windowsHide: true,
     },
@@ -20,7 +21,7 @@ function spawnHost(entryPoint) {
 }
 
 async function runProbe(entryPoint) {
-  const child = spawnHost(entryPoint);
+  const child = spawnHost(`[CodexBilingualOverlay.OverlayProgram]::${entryPoint}`);
   let stdout = "";
   let stderr = "";
   child.stdout.setEncoding("utf8");
@@ -60,5 +61,9 @@ export function runCardHoverProbe() {
 }
 
 export function startOverlayProcess() {
-  return spawnHost("Run");
+  return spawnHost("[CodexBilingualOverlay.OverlayProgram]::Run");
+}
+
+export function startControlWindowProcess() {
+  return spawnHost("[CodexBilingualOverlay.ControlWindow]::Run", controlWindowSourcePath);
 }

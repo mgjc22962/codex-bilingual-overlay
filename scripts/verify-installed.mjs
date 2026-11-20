@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -13,19 +15,21 @@ const cacheRoot = process.argv[2] ?? resolve(
 const serverPath = resolve(cacheRoot, "src", "server.mjs");
 if (!existsSync(serverPath)) throw new Error(`Installed MCP server not found: ${serverPath}`);
 
+const stateDir = await mkdtemp(join(tmpdir(), "codex-bilingual-verify-"));
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [serverPath],
   cwd: cacheRoot,
+  env: { CODEX_BILINGUAL_STATE_FILE: join(stateDir, "state.json") },
   stderr: "pipe",
 });
 const client = new Client({ name: "installed-bilingual-verifier", version: "1.0.0" });
-await client.connect(transport);
-
 try {
+  await client.connect(transport);
   const listed = await client.listTools();
   const names = listed.tools.map((tool) => tool.name);
   const controls = await client.callTool({ name: "show_bilingual_controls", arguments: {} });
+  if (controls.isError) throw new Error(controls.content[0]?.text);
   const resource = await client.readResource({ uri: "ui://codex-bilingual-overlay/controls-v1.html" });
   const enabled = await client.callTool({
     name: "set_bilingual_mode",
@@ -47,5 +51,9 @@ try {
     disabledState: disabled.structuredContent?.overlayState,
   })}\n`);
 } finally {
-  await client.close();
+  try {
+    await client.close();
+  } finally {
+    await rm(stateDir, { recursive: true, force: true });
+  }
 }

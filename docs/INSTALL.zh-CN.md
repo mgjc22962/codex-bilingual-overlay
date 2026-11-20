@@ -13,11 +13,13 @@
 4. 如果插件没有自动显示为已安装，在“插件 → 个人”中选择“中英双语增强器”并安装。
 5. 新建任务，输入“打开中英双语增强器控制卡”。
 
+如果 Codex 不支持内嵌卡片，控制卡会在 Windows 桌面独立打开。
+
 安装脚本会保留个人市场中其他插件条目，不会修改 Codex 程序文件。
 
 ## Codex 或插件被卸载后的恢复
 
-重新下载本仓库，再次执行安装命令即可。若 `%PUBLIC%\CodexBilingualOverlay` 仍存在，运行时脚本会复用已经安装的模型；若不存在，则重新下载。
+从 [最新 Release](https://github.com/mgjc22962/codex-bilingual-overlay/releases/latest) 下载 ZIP，再次执行安装命令即可。更新时可以直接覆盖安装。若 `%PUBLIC%\CodexBilingualOverlay` 仍存在，运行时脚本会复用已经安装的模型；若不存在，则重新下载。
 
 ## 仅修复离线运行时
 

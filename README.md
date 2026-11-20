@@ -18,7 +18,7 @@ An open-source bilingual overlay for Codex on Windows. It preserves the original
 
 要求：Windows 10/11、Codex 桌面版、Node.js 20 或更高版本、可用的 Python 3（优先使用 Codex 自带运行时）。首次安装离线模型需要网络，约占 214 MB。
 
-从 GitHub 下载 ZIP 并解压，或执行：
+从 [GitHub 的最新 Release](https://github.com/mgjc22962/codex-bilingual-overlay/releases/latest) 下载 ZIP 并解压，或执行：
 
 ```powershell
 git clone https://github.com/mgjc22962/codex-bilingual-overlay.git
@@ -38,6 +38,8 @@ node .\scripts\install-plugin.mjs
 如果以后卸载了 Codex 或本插件，只需重新下载本仓库并再次运行同一个安装命令。详细步骤见 [安装与恢复指南](docs/INSTALL.zh-CN.md)。
 
 ## 使用
+
+在 Codex 中输入“打开中英双语增强器控制卡”。如果客户端不支持内嵌卡片，控制卡会在运行插件的 Windows 桌面独立打开。手机远程使用时，也可以直接在对话中输入“切换到悬停翻译”“切换到页面预翻译”或“关闭双语翻译”。
 
 控制卡提供：
 
